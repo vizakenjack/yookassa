@@ -13,12 +13,9 @@ module Yookassa
 
     def create(payload:, idempotency_key: SecureRandom.hex(10))
       data = post("refunds", payload: payload, idempotency_key: idempotency_key)
+      return data if data.is_a?(Entity::Error)
 
-      if data["type"] == "error"
-        Entity::Error.new(data)
-      else
-        Entity::Refund.new(**data.merge(idempotency_key: idempotency_key))
-      end
+      Entity::Refund.new(**data.merge(idempotency_key: idempotency_key))
     end
 
     def list(filters: {})
