@@ -15,21 +15,23 @@ module Yookassa
 
     def create(payment:, idempotency_key: SecureRandom.hex(10))
       data = post("payments", payload: payment, idempotency_key: idempotency_key)
+      return data if data.is_a?(Entity::Error)
+
       if data["type"] == "error"
         Entity::Error.new(data)
       else
-        Entity::Payment.new(**data.merge(idempotency_key: idempotency_key))
+        Entity::Payment.new(**data, idempotency_key: idempotency_key)
       end
     end
 
     def capture(payment_id:, idempotency_key: SecureRandom.hex(10))
       data = post("payments/#{payment_id}/capture", idempotency_key: idempotency_key)
-      Entity::Payment.new(**data.merge(idempotency_key: idempotency_key))
+      Entity::Payment.new(**data, idempotency_key: idempotency_key)
     end
 
     def cancel(payment_id:, idempotency_key: SecureRandom.hex(10))
       data = post("payments/#{payment_id}/cancel", idempotency_key: idempotency_key)
-      Entity::Payment.new(**data.merge(idempotency_key: idempotency_key))
+      Entity::Payment.new(**data, idempotency_key: idempotency_key)
     end
 
     def list(filters)
